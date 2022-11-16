@@ -3,6 +3,7 @@ library(tidyverse)
 library(Amelia)
 library(haven)
 library(readxl)
+library(WDI)
 
 set.seed(977634)
 
@@ -20,7 +21,9 @@ ged <- GEDEvent_v21_1 %>%
            total_active_years = cumsum( active_year))
 
 # Child sodlier
-cs <- read_dta("data/child_soldiers.dta")
+load("data/Replication_Forced.RData")
+cs <- table
+rm(table)
 
 dyad_years <- cs %>%
     select(dyadid, endyear, ccodecow, Csdum, Csindex, nr_anystrategy,
@@ -56,10 +59,23 @@ hom <- filter(hom, !is.na(ccode))
 
 dat <- left_join(dyad_years, hom, by = c("ccodecow" = "ccode", "year" = "year"))
 dat <- dat %>%
-    #mutate(hom_count = as.numeric(hom_count),
-    mutate(hom_rate = as.numeric(hom_rate),
+    mutate(hom_count = as.numeric(hom_count),
+    #mutate(hom_rate = as.numeric(hom_rate),
            postcon = ifelse(year >= endyear, 1, 0))
 
+# World Bank Data
+wb_data <- WDI(indicator = c('popslums' = 'EN.POP.SLUM.UR.ZS',
+                             'education' = 'SE.XPD.TOTL.GD.ZS'),
+               start = 1990, end = 2020)
+
+wb_data$ccodecow <- countrycode(sourcevar = wb_data$iso3c, origin = "iso3c",
+                             destination = "cown") 
+wb_data <- select(wb_data, ccodecow, year, popslums, education) %>%
+           filter(!is.na(ccodecow) & !is.na(year)) %>%
+           unique()
+
+dat_total <- left_join(dat, wb_data) %>% unique()
+
 #test
-rstanarm::stan_glm.nb(hom_rate ~ resources + Csdum,
+rstanarm::stan_glm.nb(hom_count ~ resources + Csdum,
                       data = subset(dat, postcon == 1))
