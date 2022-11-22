@@ -22,7 +22,10 @@ ged <- GEDEvent_v21_1 %>%
            total_active_years = cumsum( active_year))
 
 # Child sodlier
-cs <- read_dta("data/child_soldiers.dta")
+#cs <- read_dta("data/child_soldiers.dta")
+load("data/Replication_Forced.RData")
+cs <- table
+rm("table")
 
 dyad_years <- cs %>%
     select(dyadid, endyear, ccodecow, Csdum, Csindex, nr_anystrategy,
