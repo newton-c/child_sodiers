@@ -185,3 +185,4 @@ nb_grid <- arrangeGrob(grobs = index_inter_plots, nrow = 3, ncol = 3,
 ggsave("figures/index_inter_coef_plot.png", nb_grid, height = 10, width = 7)
 
 # Tables ---------------------------------------------------------------------
+

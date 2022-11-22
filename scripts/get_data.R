@@ -38,8 +38,8 @@ dyad_years <- cs %>%
     rowwise() %>%
     mutate(year = list(seq(1990, 2020, by = 1))) %>%
     unnest(cols = c(year)) %>%
-    ungroup()
-
+    ungroup() 
+    
 # Homicide data
 homc <- read_xlsx("data/homicide_country_download.xlsx") %>%
     filter(Gender == "Total (all ages)",
