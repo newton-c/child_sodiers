@@ -3,6 +3,7 @@ library(tidyverse)
 library(Amelia)
 library(haven)
 library(readxl)
+library(rstanarm)
 library(WDI)
 
 set.seed(977634)
@@ -21,9 +22,7 @@ ged <- GEDEvent_v21_1 %>%
            total_active_years = cumsum( active_year))
 
 # Child sodlier
-load("data/Replication_Forced.RData")
-cs <- table
-rm(table)
+cs <- read_dta("data/child_soldiers.dta")
 
 dyad_years <- cs %>%
     select(dyadid, endyear, ccodecow, Csdum, Csindex, nr_anystrategy,
@@ -31,7 +30,8 @@ dyad_years <- cs %>%
     group_by(dyadid, endyear, ccodecow) %>%
     summarise(Csdum = max(Csdum), Csindex = max(Csindex),
               resources = max(nr_anystrategy),
-              duration = max(duration)) %>%
+              duration = max(duration),
+              battle_deaths = cumsum(bdeaths)) %>%
     rowwise() %>%
     mutate(year = list(seq(1990, 2020, by = 1))) %>%
     unnest(cols = c(year)) %>%
@@ -60,22 +60,26 @@ hom <- filter(hom, !is.na(ccode))
 dat <- left_join(dyad_years, hom, by = c("ccodecow" = "ccode", "year" = "year"))
 dat <- dat %>%
     mutate(hom_count = as.numeric(hom_count),
-    #mutate(hom_rate = as.numeric(hom_rate),
+           hom_rate = as.numeric(hom_rate),
            postcon = ifelse(year >= endyear, 1, 0))
 
-# World Bank Data
-wb_data <- WDI(indicator = c('popslums' = 'EN.POP.SLUM.UR.ZS',
-                             'education' = 'SE.XPD.TOTL.GD.ZS'),
-               start = 1990, end = 2020)
+wbi <- WDI(indicator = c("SE.XPD.TOTL.GD.ZS", "EN.POP.SLUM.UR.ZS"),
+           start = 1990, end = 2022)
+wbi$ccodecow <- countrycode(sourcevar = wbi$country, origin = "country.name",
+                         destination = "cown")
+wbi <- filter(wbi, !is.na(ccodecow)) %>%
+       mutate(pop_slums = EN.POP.SLUM.UR.ZS,
+              education = SE.XPD.TOTL.GD.ZS) %>%
+       select(year, ccodecow, pop_slums, education)
 
-wb_data$ccodecow <- countrycode(sourcevar = wb_data$iso3c, origin = "iso3c",
-                             destination = "cown") 
-wb_data <- select(wb_data, ccodecow, year, popslums, education) %>%
-           filter(!is.na(ccodecow) & !is.na(year)) %>%
-           unique()
+csdat <- left_join(dat, wbi)
 
-dat_total <- left_join(dat, wb_data) %>% unique()
+a.out <- amelia(data.frame(csdat), m = 5, idvars = c("dyadid", "endyear", "hom_rate",
+                                         "hom_count", "country", "postcon"), 
+                ts = "year", cs = "ccodecow")
 
 #test
-rstanarm::stan_glm.nb(hom_count ~ resources + Csdum,
-                      data = subset(dat, postcon == 1))
+#rstanarm::stan_glm.nb(hom_count ~ resources + Csdum,
+#                      data = subset(dat, postcon == 1))
+
+
