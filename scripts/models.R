@@ -126,10 +126,10 @@ nb_grid <- arrangeGrob(grobs = index_plots, nrow = 3, ncol = 3,
 
 ggsave("figures/index_coef_plot.png", nb_grid, height = 10, width = 7)
 
-coef_names <- c("Intercept", "Child Soldier\n(Binary)", "Illicit Resources",
-                "Child Soldier\n(Binary) *\nIllicit Resources", "Duration",
+coef_names <- c("Intercept", "Child Soldier\n(Binary)", "Illicit Resources", "Duration",
                 "Battle Related\nDeaths", "Population\nLiving in Slums",
-                "Education")
+                "Education",
+                "Child Soldier\n(Binary) *\nIllicit Resources")
 
 dum_inter_plots <- lapply(seq_along(coef_names), function(.x) {
     ggplot() +
@@ -145,9 +145,9 @@ dum_inter_plots <- lapply(seq_along(coef_names), function(.x) {
            }
 )
 
-layout_grid <- rbind(c(2, 3, 4),
-                     c(5, 6, 7),
-                     c(8, 1, NA))
+layout_grid <- rbind(c(2, 3, 8),
+                     c(4, 5, 6),
+                     c(7, 1, NA))
 
 nb_grid <- arrangeGrob(grobs = dum_inter_plots, nrow = 3, ncol = 3,
                        layout_matrix = layout_grid)
@@ -155,9 +155,8 @@ nb_grid <- arrangeGrob(grobs = dum_inter_plots, nrow = 3, ncol = 3,
 ggsave("figures/dum_inter_coef_plot.png", nb_grid, height = 10, width = 7)
 
 coef_names <- c("Intercept", "Child Soldier\n(Index)", "Illicit Resources",
-                "Child Soldier\n(Index) *\nIllicit Resources", "Duration",
-                "Battle Related\nDeaths", "Population\nLiving in Slums",
-                "Education")
+                "Duration", "Battle Related\nDeaths", "Population\nLiving in Slums",
+                "Education", "Child Soldier\n(Index) *\nIllicit Resources")
 
 index_inter_plots <- lapply(seq_along(coef_names), function(.x) {
     ggplot() +
@@ -175,9 +174,9 @@ index_inter_plots <- lapply(seq_along(coef_names), function(.x) {
            }
 )
 
-layout_grid <- rbind(c(2, 3, 4),
-                     c(5, 6, 7),
-                     c(8, 1, NA))
+layout_grid <- rbind(c(2, 3, 8),
+                     c(4, 5, 6),
+                     c(7, 1, NA))
 
 nb_grid <- arrangeGrob(grobs = index_inter_plots, nrow = 3, ncol = 3,
                        layout_matrix = layout_grid)
